@@ -1,0 +1,34 @@
+[{
+  type:'Layout',
+  childrens:[
+    {
+      type:'Layout.Header',
+      props:{
+
+      }
+    },
+  ]
+},{
+  type:'Layout',
+  childrens:[
+    {
+      type:'Layout.Sider',
+      col:4,
+      props:{
+
+      }
+    },
+    {
+      type:'Layout.Content',
+      col:8,
+      props:{
+
+      }
+    }
+  ]
+},{
+  type:'Layout',
+},{
+  type:'Layout',
+},
+]
