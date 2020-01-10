@@ -25,7 +25,7 @@ class Editor extends Component {
       activeCom:{},
       editTarget:null,
       showAddList:false,
-      hasBeginEdit:false,
+      hasBeginEdit:false,  // 模板显示隐藏
       isDragLayer:false,
       addListData:{
 
@@ -441,7 +441,7 @@ class Editor extends Component {
         </NativeListener>
         <div style={{flex:1,position:'relative',marginRight:500}}>
           {
-          (!this.state.hasBeginEdit)
+          (!this.state.hasBeginEdit) 
             ?
             <div 
               style={{position:'absolute',top:25,width:'100%',textAlign:'center',fontSize:20,color:"#aaa"}}
