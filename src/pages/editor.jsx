@@ -400,202 +400,246 @@ class Editor extends Component {
     // localStorage 存储所有配置， 初始化 data == JSON.stringfy(div插件)
     localStorage.setItem('cache_data',JSON.stringify(this.state.data));
     return (
-      <div style={{ display: "flex"}} className={'editor'} onMouseMove={(e)=>{
-        if(this.state.isDragLayer){
-          e.stopPropagation();
-          this.state.mouse_x = e.clientX;
-          this.state.mouse_y = e.clientY;
-
-          this.state.dragdiv_x = this.state.mouse_x
-          this.state.dragdiv_y = this.state.mouse_y
-          document.getElementById("dragdiv").style.left = this.state.mouse_x-5  +'px'
-          document.getElementById("dragdiv").style.top = this.state.mouse_y-5  +'px'
-          if(!this.state.activeCom.props.style) {
-            this.state.activeCom.props.style = {}
-          }
-          this.state.layer_w =  this.state.activeCom.props.style.width = this.state.mouse_x + 5 - this.state.layer_x;
-          this.state.layer_h = this.state.activeCom.props.style.height = this.state.mouse_y + 5 - this.state.layer_y;
-          this.forceUpdate()
-        }
-      }} onMouseUp={()=>{
-        this.state.isDragLayer = false;
-      }}>
-      <div className="edit_layer" style={{zIndex:(this.state.layer_isTop?1000:-10),display:(this.state.layer_show?"block":"none"),width:this.state.layer_w,height:this.state.layer_h,left:this.state.layer_x,top:this.state.layer_y}}>
-        <div color="#f50" style={{position:'absolute',top:0,right:0,padding:"3px 10px",backgroundColor:"#999",color:"#fff"}}>{this.state.activeCom.title}</div>
-
-
-      </div>
-      <NativeListener onMouseDown={(e)=>{
+      <div 
+        style={{ display: "flex"}} 
+        className={'editor'} 
+        onMouseMove={(e)=>{
+          if(this.state.isDragLayer){
+            e.stopPropagation();
+            this.state.mouse_x = e.clientX;
+            this.state.mouse_y = e.clientY;
+            this.state.dragdiv_x = this.state.mouse_x
+            this.state.dragdiv_y = this.state.mouse_y
+            document.getElementById("dragdiv").style.left = this.state.mouse_x-5  +'px'
+            document.getElementById("dragdiv").style.top = this.state.mouse_y-5  +'px'
+            if(!this.state.activeCom.props.style) {
+              this.state.activeCom.props.style = {}
+            }
+            this.state.layer_w =  this.state.activeCom.props.style.width = this.state.mouse_x + 5 - this.state.layer_x;
+            this.state.layer_h = this.state.activeCom.props.style.height = this.state.mouse_y + 5 - this.state.layer_y;
+            this.forceUpdate()
+          }}
+        } 
+        onMouseUp={()=>{ this.state.isDragLayer = false;}}
+      >
+        <div 
+          className="edit_layer" 
+          style={{zIndex:(this.state.layer_isTop?1000:-10),display:(this.state.layer_show?"block":"none"),width:this.state.layer_w,height:this.state.layer_h,left:this.state.layer_x,top:this.state.layer_y}}
+        >
+          <div 
+            color="#f50" 
+            style={{position:'absolute',top:0,right:0,padding:"3px 10px",backgroundColor:"#999",color:"#fff"}}
+          >{this.state.activeCom.title}</div>
+        </div>
+        <NativeListener 
+          onMouseDown={(e)=>{
             e.stopPropagation();
             this.state.isDragLayer = true;
-        }}>
+          }}
+        >
           <div id="dragdiv" style={{width:10,height:10,background:"#aaa",position:"absolute",zIndex:100000}}></div>
         </NativeListener>
-      <div style={{flex:1,position:'relative',marginRight:500}}>
-      {
-        (!this.state.hasBeginEdit)?<div style={{position:'absolute',top:25,width:'100%',textAlign:'center',fontSize:20,color:"#aaa"}}>
-        设计板，拖拽元素到此，点击元素可以编辑属性，红色虚线区域可以放置子组件
-        </div>:null
-      }
-      {
-        this.renderJSON(this.state.data)
-      }
-      </div>
-      <div style={{width:500,background:'#eee',overflow:"auto",position:'fixed',right:0,top:0,height:window.innerHeight}}>
-      <Collapse defaultActiveKey={['0','output']} onChange={()=>{}}>
-      <Panel header={'属性编辑区 '+(this.state.editCom.title?`（${this.state.editCom.title}）`:'')} key={0}>
-      <div style={{minHeight:"30px",background:"#fff"}}>
-
-      {
-        this.state.editCom.type?<Button onClick={()=>{
-          this.state.editCom.hasDelete = true;
-          this.forceUpdate();
-        }} style={{marginRight:20}}>删除此元素</Button>:null
-      }
-      {
-        this.state.editCom.type?<Button onClick={()=>{
-          this.copyCom(this.state.editCom);
-          this.forceUpdate();
-        }} style={{marginRight:20}}>复制此元素</Button>:null
-      }
-      <Button onClick={()=>{
-        localStorage.setItem('cache_data','');
-        window.location.reload();
-      }} style={{marginRight:20}}>清空并重新开始</Button>
-      {
-        (this.state.editCom&&this.state.editCom.config)?Object.keys(this.state.editCom.config).map((key)=>{
-          if(key == 'style') {
-            var style = this.state.editCom.config.style;
-
-            return Object.keys(this.state.editCom.config.style).map((s)=>{
-              if(style[s].type=='color'){
-                console.log(this.state.editCom.props.style[s])
-                  return <Form.Item label={this.state.editCom.config[key][s].text} style={{marginBottom:5}}>
-              <ColorPicker
-                            color={this.state.editCom.props.style[s]||'#fff'}
-                            onChange={(c)=>{
-                              this.state.editCom.props.style[s] = c.color;
-                              this.forceUpdate();
-                            }}
-                            placement="topRight"
-                          />
-             </Form.Item>
-              }else if(style[s].type=='4-value'){
-                var defaultValue = this.state.editCom.props.style[s] || "0";
-                if(defaultValue.toString().indexOf(' ')==-1){
-                  this.state.value4EditResult[s] = [defaultValue,defaultValue,defaultValue,defaultValue];
-                } else {
-                  this.state.value4EditResult[s] = defaultValue.split(' ')
-                }
-                return <Form.Item label={this.state.editCom.config.style[s].text} style={{marginBottom:5}}>
-                上：<Input defaultValue={this.state.value4EditResult[s][0]} onChange={(v)=>{
-                 this.state.value4EditResult[s][0] = v.target.value;
-                 this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
-                 this.forceUpdate()
-               }} style={{width:50,marginRight:5}}></Input>
-               右：<Input defaultValue={this.state.value4EditResult[s][1]} onChange={(v)=>{
-                 this.state.value4EditResult[s][1] = v.target.value;
-                 this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
-                 this.forceUpdate()
-               }} style={{width:50,marginRight:5}}></Input>
-               下：<Input defaultValue={this.state.value4EditResult[s][2]} onChange={(v)=>{
-                 this.state.value4EditResult[s][2] = v.target.value;
-                 this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
-                 this.forceUpdate()
-               }} style={{width:50,marginRight:5}}></Input>
-               左：<Input defaultValue={this.state.value4EditResult[s][3]} onChange={(v)=>{
-                 this.state.value4EditResult[s][3] = v.target.value;
-                 this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
-                 this.forceUpdate()
-               }} style={{width:50}}></Input>
-               </Form.Item>
-             }else{
-              return <Form.Item label={this.state.editCom.config[key][s].text} style={{marginBottom:5}}>
-              <Input defaultValue={this.state.editCom.props[key][s]} onChange={(v)=>{
-               this.state.editCom.props[key][s] = v.target.value;
-               this.forceUpdate()
-             }}></Input>
-             </Form.Item>
-           }
-         })
-          }else if(this.state.editCom.config[key].enumobject){
-            return this.renderEnumObject(this.state.editCom,key);
-          }else{
-            return <Form.Item label={this.state.editCom.config[key].text} style={{marginBottom:5}}>
-            {
-              (()=>{
-                if(this.state.editCom.config[key].enum){
-                  return  <Select
-                  defaultValue={this.state.editCom.props[key]}
-                  style={{ width: 120 }}
-                  onChange={(v)=>{
-                    this.state.editCom.props[key] = (v=="true"?true:(v==="false"?false:v));
-                    this.forceUpdate();
-                  }}>
-                  {
-                    this.state.editCom.config[key].enum.map((n)=>{
-                      return <Select.Option value={n}>{n}</Select.Option>
-                    })
-                  }
-                  </Select>
-                }else if(this.state.editCom.config[key].type=="Boolean"){
-                  return  <Checkbox
-                  checked={this.state.editCom.props[key]}
-                  onChange={(v)=>{
-                    this.state.editCom.props[key] = v.target.checked;
-                    this.forceUpdate();
-                  }}/>
-
-                }else if(key=='content'){
-                  return <Input defaultValue={this.state.editCom.props[key]} onChange={(v)=>{
-                    this.state.editCom.props[key] = v.target.value;
-                    this.forceUpdate()
-                  }}></Input>
-                }else{
-                  return <Input defaultValue={this.state.editCom.props[key]} onChange={(v)=>{
-                    this.state.editCom.props[key] = v.target.value;
-                    this.forceUpdate()
-                  }}></Input>
-                }
-              })()
-            }
-
-            </Form.Item>
-          }
-        }):(
-        <Alert message="此组件无可编辑属性" type="warning" style={{marginTop:20}}></Alert>
-        )
-      }
-      </div>
-      </Panel>
-
-      {
-        antComponents.map((group,i)=>{
-          return <Panel header={group.group_title+' '+group.coms.length} key={i+1}>
+        <div style={{flex:1,position:'relative',marginRight:500}}>
           {
-            group.coms.map((com,i2)=>{
-              return <Tag onDragStart={(ev)=>{
-                this.setState({
-                  hasBeginEdit:true
-                })
-                this.state.draggingData = com;
-              }} draggable={true} key={i+''+i2}>{com.type} {com.title}</Tag>
-            })
+          (!this.state.hasBeginEdit)
+            ?
+            <div 
+              style={{position:'absolute',top:25,width:'100%',textAlign:'center',fontSize:20,color:"#aaa"}}
+            >设计板，拖拽元素到此，点击元素可以编辑属性，红色虚线区域可以放置子组件</div>
+            :null
           }
-          </Panel>
-        })
-      }
-      <Panel header={'最终代码（自动更新）'} key={'output'}>
-      <Button style={{marginBottom:5}} onClick={()=>{
-        localStorage.setItem('preview_data',JSON.stringify(this.state.data));
-        window.open('#/preview')
-      }} type={'primary'}>生成预览页面</Button>
-      <Input type="textarea" rows={10} value={this.renderJSONtoJSX()}></Input>
-      </Panel>
-      </Collapse>
-
-      </div>
-
+          { this.renderJSON(this.state.data) }
+        </div>
+        <div style={{width:500,background:'#eee',overflow:"auto",position:'fixed',right:0,top:0,height:window.innerHeight}}>
+          <Collapse defaultActiveKey={['0','output']} onChange={()=>{}}>
+            <Panel header={'属性编辑区 '+(this.state.editCom.title?`（${this.state.editCom.title}）`:'')} key={0}>
+              <div style={{minHeight:"30px",background:"#fff"}}>
+              {
+                this.state.editCom.type?<Button onClick={()=>{
+                  this.state.editCom.hasDelete = true;
+                  this.forceUpdate();
+                }} style={{marginRight:20}}>删除此元素</Button>:null
+              }
+              {
+                this.state.editCom.type?<Button onClick={()=>{
+                  this.copyCom(this.state.editCom);
+                  this.forceUpdate();
+                }} style={{marginRight:20}}>复制此元素</Button>:null
+              }
+              <Button onClick={()=>{
+                localStorage.setItem('cache_data','');
+                window.location.reload();
+              }} style={{marginRight:20}}>清空并重新开始</Button>
+              {
+                (this.state.editCom&&this.state.editCom.config)
+                  ?
+                  Object.keys(this.state.editCom.config).map((key)=> {
+                    if(key == 'style') {
+                      var style = this.state.editCom.config.style;
+                      return Object.keys(this.state.editCom.config.style).map((s) => {
+                        if (style[s].type=='color') {
+                          return (
+                            <Form.Item label={this.state.editCom.config[key][s].text} style={{marginBottom:5}}>
+                              <ColorPicker
+                                color={this.state.editCom.props.style[s]||'#fff'}
+                                onChange={(c)=>{
+                                  this.state.editCom.props.style[s] = c.color;
+                                  this.forceUpdate();
+                                }}
+                                placement="topRight" 
+                              />
+                            </Form.Item>
+                          )
+                        } else if(style[s].type=='4-value') {
+                          var defaultValue = this.state.editCom.props.style[s] || "0";
+                          if (defaultValue.toString().indexOf(' ')==-1) {
+                            this.state.value4EditResult[s] = [defaultValue,defaultValue,defaultValue,defaultValue];
+                          } else {
+                            this.state.value4EditResult[s] = defaultValue.split(' ')
+                          }
+                          return (
+                            <Form.Item 
+                              label={this.state.editCom.config.style[s].text} 
+                              style={{marginBottom:5}}
+                            >
+                              上：<Input 
+                                  defaultValue={this.state.value4EditResult[s][0]} 
+                                  onChange={(v)=>{
+                                    this.state.value4EditResult[s][0] = v.target.value;
+                                    this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
+                                    this.forceUpdate()
+                                  }} 
+                                  style={{width:50,marginRight:5}}></Input>
+                              右：<Input 
+                                  defaultValue={this.state.value4EditResult[s][1]} 
+                                  onChange={(v)=>{
+                                    this.state.value4EditResult[s][1] = v.target.value;
+                                    this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
+                                    this.forceUpdate()
+                                  }} 
+                                  style={{width:50,marginRight:5}}></Input>
+                              下：<Input 
+                                  defaultValue={this.state.value4EditResult[s][2]} 
+                                  onChange={(v)=>{
+                                    this.state.value4EditResult[s][2] = v.target.value;
+                                    this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
+                                    this.forceUpdate()
+                                  }} 
+                                  style={{width:50,marginRight:5}}></Input>
+                              左：<Input defaultValue={this.state.value4EditResult[s][3]} onChange={(v)=>{
+                                    this.state.value4EditResult[s][3] = v.target.value;
+                                    this.state.editCom.props.style[s] = this.state.value4EditResult[s].join(" ")
+                                    this.forceUpdate()
+                                  }} style={{width:50}}></Input>
+                            </Form.Item>
+                          )
+                        } else {
+                          return (
+                              <Form.Item 
+                                label={this.state.editCom.config[key][s].text} 
+                                style={{marginBottom:5}}
+                              >
+                                <Input 
+                                  defaultValue={this.state.editCom.props[key][s]} 
+                                  onChange={(v)=>{
+                                    this.state.editCom.props[key][s] = v.target.value;
+                                    this.forceUpdate()
+                                  }}></Input>
+                              </Form.Item>
+                          )
+                        }
+                      })
+                  } else if (this.state.editCom.config[key].enumobject){
+                    return this.renderEnumObject(this.state.editCom,key);
+                  } else {
+                    return (
+                      <Form.Item 
+                        label={this.state.editCom.config[key].text} 
+                        style={{marginBottom:5}}
+                      >
+                        {
+                          (()=>{
+                            if(this.state.editCom.config[key].enum){
+                              return  (
+                                <Select
+                                  defaultValue={this.state.editCom.props[key]}
+                                  style={{ width: 120 }}
+                                  onChange={(v)=>{
+                                    this.state.editCom.props[key] = (v=="true"?true:(v==="false"?false:v));
+                                    this.forceUpdate();
+                                  }}
+                                >
+                                  {
+                                    this.state.editCom.config[key].enum.map((n)=>{
+                                      return <Select.Option value={n}>{n}</Select.Option>
+                                    })
+                                  }
+                                </Select>)
+                            }else if(this.state.editCom.config[key].type=="Boolean"){
+                              return  (
+                                  <Checkbox
+                                    checked={this.state.editCom.props[key]}
+                                    onChange={(v)=>{
+                                      this.state.editCom.props[key] = v.target.checked;
+                                      this.forceUpdate();
+                                    }}
+                                  />
+                              )
+                            }else if(key=='content'){
+                              return (
+                                <Input defaultValue={this.state.editCom.props[key]} onChange={(v)=>{
+                                  this.state.editCom.props[key] = v.target.value;
+                                  this.forceUpdate()
+                                }}></Input>
+                              )
+                            }else{
+                              return (
+                                <Input defaultValue={this.state.editCom.props[key]} onChange={(v)=>{
+                                  this.state.editCom.props[key] = v.target.value;
+                                  this.forceUpdate()
+                                }}></Input>
+                              )
+                            }
+                          })()
+                        }
+                      </Form.Item>
+                    )
+                  }
+                }):(<Alert message="此组件无可编辑属性" type="warning" style={{marginTop:20}}></Alert>)
+              }
+            </div>
+            </Panel>
+            {
+              antComponents.map((group,i)=>{
+                return <Panel header={group.group_title+' '+group.coms.length} key={i+1}>
+                {
+                  group.coms.map((com,i2)=>{
+                    return <Tag onDragStart={(ev)=>{
+                      this.setState({
+                        hasBeginEdit:true
+                      })
+                      this.state.draggingData = com;
+                    }} draggable={true} key={i+''+i2}>{com.type} {com.title}</Tag>
+                  })
+                }
+                </Panel>
+              })
+            }
+            <Panel 
+                header={'最终代码（自动更新）'} 
+                key={'output'}
+              >
+                <Button 
+                  style={{marginBottom:5}} 
+                  onClick={()=>{
+                    localStorage.setItem('preview_data',JSON.stringify(this.state.data));
+                    window.open('#/preview')
+                  }} 
+                  type={'primary'}>生成预览页面</Button>
+                <Input type="textarea" rows={10} value={this.renderJSONtoJSX()}></Input>
+              </Panel>
+          </Collapse>
+        </div>
       </div>
   );
 }
