@@ -4,8 +4,8 @@ import antComponents from './ant-coms.js';
 import { Collapse,Modal,Form,Table,Button } from 'antd';
 const Panel = Collapse.Panel;
 import { Tag,Input,InputNumber,Alert,Select,Checkbox } from 'antd';
-import _ from 'lodash';
-import NativeListener from 'react-native-listener';
+import _ from 'lodash'; // loadsh node 常用插件方法库<本块主要用道理深拷贝、uniq 去重方式>
+import NativeListener from 'react-native-listener'; // react dom树侦听器，检测dom树动态
 import ColorPicker from 'rc-color-picker';
 
 import com_div from './coms/div';
@@ -43,11 +43,11 @@ class Editor extends Component {
       indent_space:'',
       data:[
         (function(){
-          var div = _.cloneDeep(com_div);
-          div.props.style.height = 200;
-          return div;
+          var div = _.cloneDeep(com_div); // 将初始化的 div 组件深拷贝份
+          div.props.style.height = 200; // 设置初始高度
+          return div; // 返回该 div (json数据)
         })()
-      ]
+      ]//以数组数据接收各个组件
     };
     var v = localStorage.getItem('cache_data');
     if(v){
@@ -61,62 +61,63 @@ class Editor extends Component {
     },3000)
   }
 
-  _getComponent(types) {
-    if(types.length==1){
-      return antd[types[0]]
+  _getComponent(types) { // 接收一个数组 ["Form", "Item"]这种方式
+    if(types.length==1){ // 假如类型等于则是 antd 类型组件
+      return antd[types[0]] 
     }else{
-      var lastT = types.pop();
-      var com = this._getComponent(types)[lastT];
+      var lastT = types.pop(); // 删除 types 数组最后一位
+      var com = this._getComponent(types)[lastT]; // 此时做递归，页面中所有 tag 名称返回
       return com;
     }
   }
-  findCanDropTarget(target){
+
+  findCanDropTarget(target){ // 样式添加
     if(target.className.indexOf('draggable')!=-1){
       return target;
     }else{
-      return this.findCanDropTarget(target.parentNode);
+      return this.findCanDropTarget(target.parentNode); // 做递归
     }
   }
-  renderJSON(json){
+  renderJSON(json){ // 将 json 数组循环
     return (
       json.map((d,i)=>{
         d.id = this.state.comNowIndex++;
-        if(d.hasDelete) return;
+        if(d.hasDelete) return; // 如果具有 hasDelete 删除该 json 项
 
-        var component;
+        var component; // 组件声明类型比如 div/p/span
         if(d.is_native){
           component = d.type;
         }else{
-          component = this._getComponent(d.type.split('.'));
-          this.state.dependComponents.push(d.type.split('.')[0]);
+          component = this._getComponent(d.type.split('.')); // 此类型适用与 Form.Item 这种类型 type 处理
+          this.state.dependComponents.push(d.type.split('.')[0]); // 最外层 tag (不触发 render 直接赋值)
         }
 
-        var props = {};
+        var props = {}; // 假如该组件 json 具有 props/不具有时赋值为{}
         d.props = d.props||{};
 
         if(d.can_place){
 
-          props.className = 'draggable';
-          props.onDragOver = (e)=>{
+          props.className = 'draggable'; // 给组件props添加className
+          props.onDragOver = (e)=>{ // 给组件赋值 onDragOver 方法 （此处写重复）
             e.preventDefault();
           }
-          props.onDrop = (e)=>{
+          props.onDrop = (e)=>{ // 组件 props 添加 onDrop 方法（选择）
             e.preventDefault();
             e.stopPropagation();
             this.findCanDropTarget(e.target).className = this.findCanDropTarget(e.target).className.replace('isdroping','')
             var com = this.state.draggingData ;
             d.childrens = d.childrens?d.childrens:[];
-            d.childrens.push(_.cloneDeep(com));
+            d.childrens.push(_.cloneDeep(com)); // 做深拷贝
             this.forceUpdate();
           }
-          props.onDragOver = (e)=>{
+          props.onDragOver = (e)=>{ // 给组件赋值 onDragOver 方法 
             e.preventDefault();
             if(this.findCanDropTarget(e.target).className.indexOf('isdroping')==-1){
               this.findCanDropTarget(e.target).className += (' isdroping')
             }
 
           }
-          props.onDragLeave = (e)=>{
+          props.onDragLeave = (e)=>{ // 组件离开（离开）
             e.preventDefault();
             this.findCanDropTarget(e.target).className = this.findCanDropTarget(e.target).className.replace('isdroping','')
           }
@@ -396,6 +397,7 @@ class Editor extends Component {
 
   render() {
     this.state.dependComponents = [];
+    // localStorage 存储所有配置， 初始化 data == JSON.stringfy(div插件)
     localStorage.setItem('cache_data',JSON.stringify(this.state.data));
     return (
       <div style={{ display: "flex"}} className={'editor'} onMouseMove={(e)=>{
@@ -595,7 +597,7 @@ class Editor extends Component {
       </div>
 
       </div>
-      );
+  );
 }
 
 collectCom(data){
